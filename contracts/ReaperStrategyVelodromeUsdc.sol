@@ -30,6 +30,12 @@ contract ReaperStrategyVelodromeUsdc is ReaperBaseStrategyv3 {
     address public lpToken0;
     address public lpToken1;
 
+    /// @dev Arrays
+    /// {rewards} - Array need to claim rewards
+    /// {veloToUsdcPath} - Path from velo to usdc
+    address[] public rewards;
+    address[] public veloToUsdcPath;
+
     /// @dev Initializes the strategy. Sets parameters and saves routes.
     /// @notice see documentation for each variable above its respective declaration.
     function initialize(
@@ -43,6 +49,10 @@ contract ReaperStrategyVelodromeUsdc is ReaperBaseStrategyv3 {
         gauge = _gauge;
         want = IVeloGauge(gauge).stake();
         (lpToken0, lpToken1) = IVeloPair(want).tokens();
+
+        // VELO, WETH, USDC
+        veloToUsdcPath = [VELO, address(0x4200000000000000000000000000000000000006), USDC];
+        rewards.push(VELO);
     }
 
     /// @dev Function that puts the funds to work.
@@ -74,8 +84,6 @@ contract ReaperStrategyVelodromeUsdc is ReaperBaseStrategyv3 {
     ///      3. Swaps the remaining rewards for {want} using {VELODROME_ROUTER}.
     ///      4. Deposits and stakes into {gauge}.
     function _harvestCore() internal override returns (uint256 callerFee) {
-        address[] memory rewards;
-        rewards[0] = VELO;
         IVeloGauge(gauge).getReward(address(this), rewards);
         // All {VELO} is swapped to {USDC} here
         // Saves a swap because {USDC} is one of {want}'s underlying tokens
@@ -108,8 +116,9 @@ contract ReaperStrategyVelodromeUsdc is ReaperBaseStrategyv3 {
     ///      Charges fees based on the amount of USDC gained from reward
     function _chargeFees() internal returns (uint256 callFeeToUser){
         IERC20Upgradeable usdc = IERC20Upgradeable(USDC);
-        uint256 veloBal = IERC20Upgradeable(VELO).balanceOf(address(this));
-        _swap(VELO, USDC, veloBal);
+        for (uint256 i; i < veloToUsdcPath.length - 1; i++) {
+            _swap(veloToUsdcPath[i],veloToUsdcPath[i+1],IERC20Upgradeable(veloToUsdcPath[i]).balanceOf(address(this)));
+        }
         uint256 usdcFee = (usdc.balanceOf(address(this)) * totalFee) / PERCENT_DIVISOR;
 
         if (usdcFee != 0) {
@@ -170,5 +179,11 @@ contract ReaperStrategyVelodromeUsdc is ReaperBaseStrategyv3 {
     /// @dev Withdraws all funds leaving rewards behind.
     function _reclaimWant() internal override {
         IVeloGauge(gauge).withdrawAll();
+    }
+
+    function setVeloToUsdcPath(address[] memory _path) external {
+        _atLeastRole(STRATEGIST);
+        require(_path[0] == VELO && _path[_path.length - 1] == USDC, "INVALID INPUT");
+        veloToUsdcPath = _path;
     }
 }

@@ -31,6 +31,10 @@ contract ReaperStrategyVelodromeDai is ReaperBaseStrategyv3 {
     address public lpToken0;
     address public lpToken1;
 
+    /// @dev Arrays
+    /// {rewards} - Array need to claim rewards
+    /// {veloToDaiPath} - Path from velo to dai
+    address[] public rewards;
     address[] public veloToDaiPath;
 
     /// @dev Initializes the strategy. Sets parameters and saves routes.
@@ -49,6 +53,7 @@ contract ReaperStrategyVelodromeDai is ReaperBaseStrategyv3 {
 
         // VELO, USDC, DAI
         veloToDaiPath = [VELO, address(0x7F5c764cBc14f9669B88837ca1490cCa17c31607), DAI];
+        rewards.push(VELO);
     }
 
     /// @dev Function that puts the funds to work.
@@ -80,8 +85,6 @@ contract ReaperStrategyVelodromeDai is ReaperBaseStrategyv3 {
     ///      3. Swaps the remaining rewards for {want} using {VELODROME_ROUTER}.
     ///      4. Deposits and stakes into {gauge}.
     function _harvestCore() internal override returns (uint256 callerFee) {
-        address[] memory rewards;
-        rewards[0] = VELO;
         IVeloGauge(gauge).getReward(address(this), rewards);
         callerFee = _chargeFees();
         _addLiquidity();

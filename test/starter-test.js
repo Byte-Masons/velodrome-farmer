@@ -34,15 +34,13 @@ describe('Vaults', function () {
 
   let Want;
   let want;
-  let joinErc; // ETH
-  let beets;
   let dai;
   let usdc;
 
   const treasuryAddr = '0x1E71AEE6081f62053123140aacC7a06021D77348';
   const paymentSplitterAddress = '0x1E71AEE6081f62053123140aacC7a06021D77348';
-  const wantAddress = '0x39965c9dAb5448482Cf7e002F583c812Ceb53046';
-  const gauge = '0x00a2bD63529fD28d777155F5eD1726e9b9b781B4';
+  const wantAddress = '0x4F7ebc19844259386DBdDB7b2eB759eeFc6F8353';
+  const gauge = '0xc4fF55A961bC04b880e60219CCBBDD139c6451A4';
 
   const wantHolderAddr = '0x1E71AEE6081f62053123140aacC7a06021D77348';
   const strategistAddr = '0x1E71AEE6081f62053123140aacC7a06021D77348';
@@ -56,9 +54,6 @@ describe('Vaults', function () {
   // const daiAddress = '';
   const usdcAddress = '0x7F5c764cBc14f9669B88837ca1490cCa17c31607';
   const joinErcAddress = '0x4200000000000000000000000000000000000006'; // ETH
-  const rewardUsdcPool = '0x7ef99013e446ddce2486b8e04735b7019a115e6f000100000000000000000005';
-  const rewardJoinErcPool = '0xd6e5824b54f64ce6f1161210bc17eebffc77e031000100000000000000000006';
-  // const deusAddress = '';
 
   let owner;
   let wantHolder;
@@ -99,14 +94,14 @@ describe('Vaults', function () {
 
     // get artifacts
     Vault = await ethers.getContractFactory('ReaperVaultv1_4');
-    Strategy = await ethers.getContractFactory('ReaperStrategyHappyRoad');
+    Strategy = await ethers.getContractFactory('ReaperStrategyVelodromeUsdc');
     Want = await ethers.getContractFactory('@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20');
 
     // deploy contracts
     vault = await Vault.deploy(
       wantAddress,
-      'Happy Road Beethoven-X Crypt',
-      'rfBPT-ROAD',
+      'Velodrome Crypt',
+      'rfTest',
       0,
       ethers.constants.MaxUint256,
     );
@@ -117,11 +112,7 @@ describe('Vaults', function () {
         [treasuryAddr, paymentSplitterAddress],
         [strategistAddr],
         [defaultAdminAddress, adminAddress, guardianAddress],
-        wantAddress,
-        usdcAddress,
-        gauge,
-        rewardUsdcPool,
-        rewardUsdcPool
+        gauge
       ],
       {kind: 'uups'},
     );
@@ -135,15 +126,13 @@ describe('Vaults', function () {
 
     want = await Want.attach(wantAddress);
     usdc = await Want.attach(usdcAddress);
-    // dai = await Want.attach(daiAddress);
-    joinErc = await Want.attach(joinErcAddress);
 
     //approving LP token and vault share spend
     await want.connect(wantHolder).approve(vault.address, ethers.constants.MaxUint256);
   });
 
-  describe('Deploying the vault and strategy', function () {
-    it('should initiate vault with a 0 balance', async function () {
+  xdescribe('Deploying the vault and strategy', function () {
+    xit('should initiate vault with a 0 balance', async function () {
       const totalBalance = await vault.balance();
       const availableBalance = await vault.available();
       const pricePerFullShare = await vault.getPricePerFullShare();
@@ -169,7 +158,7 @@ describe('Vaults', function () {
       );
     });
 
-    it('should allow implementation upgrades once timelock has passed', async function () {
+    xit('should allow implementation upgrades once timelock has passed', async function () {
       const StrategyV2 = await ethers.getContractFactory('ReaperStrategyHappyRoad2');
       const timeToSkip = (await strategy.UPGRADE_TIMELOCK()).add(10);
       await strategy.initiateUpgradeCooldown();
@@ -199,7 +188,7 @@ describe('Vaults', function () {
     });
   });
 
-  xdescribe('Vault Tests', function () {
+  describe('Vault Tests', function () {
     xit('should allow deposits and account for them correctly', async function () {
       const userBalance = await want.balanceOf(wantHolderAddr);
       const vaultBalance = await vault.balance();
@@ -214,10 +203,11 @@ describe('Vaults', function () {
 
     xit('should mint user their pool share', async function () {
       const userBalance = await want.balanceOf(wantHolderAddr);
-      const depositAmount = toWantUnit('1');
+      // const depositAmount = toWantUnit('0.0000001');
+      const depositAmount = userBalance.div(10);
       await vault.connect(wantHolder).deposit(depositAmount);
 
-      const ownerDepositAmount = toWantUnit('0.1');
+      const ownerDepositAmount = userBalance.div(10);
       await want.connect(wantHolder).transfer(owner.address, ownerDepositAmount);
       await want.connect(owner).approve(vault.address, ethers.constants.MaxUint256);
       await vault.connect(owner).deposit(ownerDepositAmount);
@@ -294,8 +284,10 @@ describe('Vaults', function () {
       expect(isSmallBalanceDifference).to.equal(true);
     });
 
-    it('should be able to harvest', async function () {
-      await vault.connect(wantHolder).deposit(toWantUnit('10'));
+    xit('should be able to harvest', async function () {
+      const userBalance = await want.balanceOf(wantHolderAddr);
+      const depositAmount = userBalance.div(10);
+      await vault.connect(wantHolder).deposit(depositAmount);
       // await moveBlocksForward(100);
       await moveTimeForward(3600 * 24);
       const readOnlyStrat = await strategy.connect(ethers.provider);
@@ -312,8 +304,10 @@ describe('Vaults', function () {
     });
 
     it('should provide yield', async function () {
+      const userBalance = await want.balanceOf(wantHolderAddr);
+      const depositAmount = userBalance.div(10);
       const timeToSkip = 3600;
-      await vault.connect(wantHolder).deposit(toWantUnit('10'));
+      await vault.connect(wantHolder).deposit(depositAmount);
       const initialVaultBalance = await vault.balance();
 
       await strategy.updateHarvestLogCadence(1);
