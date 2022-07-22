@@ -3,7 +3,6 @@
 pragma solidity ^0.8.0;
 
 import "./abstract/ReaperBaseStrategyv3.sol";
-import "./interfaces/IUniswapV2Router02.sol";
 import "./interfaces/IVeloRouter.sol";
 import "./interfaces/IVeloPair.sol";
 import "./interfaces/IVeloGauge.sol";
@@ -81,7 +80,9 @@ contract ReaperStrategyVelodrome is ReaperBaseStrategyv3 {
     ///      3. Swaps the remaining rewards for {want} using {VELODROME_ROUTER}.
     ///      4. Deposits and stakes into {gauge}.
     function _harvestCore() internal override returns (uint256 callerFee) {
-        IVeloGauge(gauge).getReward(address(this), VELO);
+        address[] memory rewards;
+        rewards[0] = VELO;
+        IVeloGauge(gauge).getReward(address(this), rewards);
         callerFee = _chargeFees();
         _swapToRelay();
         _addLiquidity();
@@ -184,9 +185,9 @@ contract ReaperStrategyVelodrome is ReaperBaseStrategyv3 {
         IVeloGauge(gauge).withdrawAll();
     }
 
-    function setVeloToRelayPath(address[] _path) external {
+    function setVeloToRelayPath(address[] memory _path) external {
         _atLeastRole(STRATEGIST);
-        require(_path[0] == VELO && _path[_path.length - 1] == DAI, "INVALID INPUT");
+        require(_path[0] == VELO && _path[_path.length - 1] == relay, "INVALID INPUT");
         veloToRelayPath = _path;
     }
     
