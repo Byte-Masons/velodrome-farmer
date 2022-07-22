@@ -47,6 +47,9 @@ contract ReaperStrategyVelodrome is ReaperBaseStrategyv3 {
         gauge = _gauge;
         want = IVeloGauge(gauge).stake();
         (lpToken0, lpToken1) = IVeloPair(want).tokens();
+
+        relay = lpToken0;
+        veloToRelayPath = [VELO, relay];
     }
 
     /// @dev Function that puts the funds to work.

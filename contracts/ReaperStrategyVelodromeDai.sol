@@ -47,6 +47,9 @@ contract ReaperStrategyVelodromeDai is ReaperBaseStrategyv3 {
         gauge = _gauge;
         want = IVeloGauge(gauge).stake();
         (lpToken0, lpToken1) = IVeloPair(want).tokens();
+
+        // VELO, USDC, DAI
+        veloToDaiPath = [VELO, address(0x7F5c764cBc14f9669B88837ca1490cCa17c31607), DAI];
     }
 
     /// @dev Function that puts the funds to work.
