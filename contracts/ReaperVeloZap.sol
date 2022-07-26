@@ -902,8 +902,6 @@ interface IReaperVaultv1_4 is IERC20 {
     function token() external pure returns (address);
 }
 
-import "hardhat/console.sol";
-
 contract ReaperVeloZap {
     using SafeERC20 for IERC20;
     using SafeERC20 for IReaperVaultv1_4;
@@ -936,8 +934,6 @@ contract ReaperVeloZap {
         uint256 tokenInAmount
     ) external {
         require(tokenInAmount >= minimumAmount, "Reaper: Insignificant input amount");
-        console.log(tokenIn);
-        console.log(IERC20(tokenIn).allowance(msg.sender, address(this)));
         require(
             IERC20(tokenIn).allowance(msg.sender, address(this)) >= tokenInAmount,
             "Reaper: Input token is not approved"
