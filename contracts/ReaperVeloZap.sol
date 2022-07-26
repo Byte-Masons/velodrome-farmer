@@ -902,6 +902,8 @@ interface IReaperVaultv1_4 is IERC20 {
     function token() external pure returns (address);
 }
 
+import "hardhat/console.sol";
+
 contract ReaperVeloZap {
     using SafeERC20 for IERC20;
     using SafeERC20 for IReaperVaultv1_4;
@@ -919,7 +921,7 @@ contract ReaperVeloZap {
         assert(msg.sender == WETH);
     }
 
-    function zapInETH(address reaperVault, uint256 tokenAmountOutMin) external payable {
+    function reapInETH(address reaperVault, uint256 tokenAmountOutMin) external payable {
         require(msg.value >= minimumAmount, "Reaper: Insignificant input amount");
 
         IWETH(WETH).deposit{value: msg.value}();
@@ -927,13 +929,15 @@ contract ReaperVeloZap {
         _swapAndStake(reaperVault, tokenAmountOutMin, WETH);
     }
 
-    function zapIn(
+    function reapIn(
         address reaperVault,
         uint256 tokenAmountOutMin,
         address tokenIn,
         uint256 tokenInAmount
     ) external {
         require(tokenInAmount >= minimumAmount, "Reaper: Insignificant input amount");
+        console.log(tokenIn);
+        console.log(IERC20(tokenIn).allowance(msg.sender, address(this)));
         require(
             IERC20(tokenIn).allowance(msg.sender, address(this)) >= tokenInAmount,
             "Reaper: Input token is not approved"
@@ -944,7 +948,7 @@ contract ReaperVeloZap {
         _swapAndStake(reaperVault, tokenAmountOutMin, tokenIn);
     }
 
-    function zapOut(address reaperVault, uint256 withdrawAmount) external {
+    function reapOut(address reaperVault, uint256 withdrawAmount) external {
         (IReaperVaultv1_4 vault, IPair pair) = _getVaultPair(reaperVault);
 
         IERC20(reaperVault).safeTransferFrom(msg.sender, address(this), withdrawAmount);
@@ -959,7 +963,7 @@ contract ReaperVeloZap {
         _returnAsset(pair.token1());
     }
 
-    function zapOutAndSwap(
+    function reapOutAndSwap(
         address reaperVault,
         uint256 withdrawAmount,
         address desiredToken,
