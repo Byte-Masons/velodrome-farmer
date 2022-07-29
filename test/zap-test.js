@@ -125,6 +125,124 @@ describe('Zapper', function () {
     await zapOut(token1, token2, tokenHolder, tokenHolderAddr, crypt, cryptAddr, token2);
   });
 
+  it('OP-L2DAO vAMM estimate swaps', async () => {
+    const cryptAddr = '0x1B4Fd39128B9caDfdfe62fb8C519061D5227D4b9';
+    const token1Addr = '0x4200000000000000000000000000000000000042'; // OP
+    const token2Addr = '0xd52f94DF742a6F4B4C8b033369fE13A41782Bf44'; // L2DAO
+
+    const token1 = await Token.attach(token1Addr);
+    const token2 = await Token.attach(token2Addr);
+
+    const token1Symbol = await token1.symbol();
+    const token2Symbol = await token2.symbol();
+
+    // estimate swaps
+    await estimateSwaps(cryptAddr, token1Addr, token1Symbol, token2Symbol, [
+      hre.ethers.utils.parseEther('100'),
+      hre.ethers.utils.parseEther('300'),
+      hre.ethers.utils.parseEther('500'),
+      hre.ethers.utils.parseEther('10000'),
+      hre.ethers.utils.parseEther('50000'),
+    ]);
+    await estimateSwaps(cryptAddr, token2Addr, token2Symbol, token1Symbol, [
+      hre.ethers.utils.parseEther('100'),
+      hre.ethers.utils.parseEther('300'),
+      hre.ethers.utils.parseEther('500'),
+      hre.ethers.utils.parseEther('10000'),
+      hre.ethers.utils.parseEther('50000'),
+    ]);
+  });
+
+  it('OP-L2DAO vAMM zap in and out', async () => {
+    const cryptAddr = '0x1B4Fd39128B9caDfdfe62fb8C519061D5227D4b9';
+    const token1Addr = '0x4200000000000000000000000000000000000042'; // OP
+    const token2Addr = '0xd52f94DF742a6F4B4C8b033369fE13A41782Bf44'; // L2DAO
+
+    const crypt = await Crypt.attach(cryptAddr);
+    const lp = await Token.attach('0xfc77e39De40E54F820E313039207DC850E4C9E60');
+    const token1 = await Token.attach(token1Addr);
+    const token2 = await Token.attach(token2Addr);
+
+    // zapIn with 5000 L2DAO
+    const tokenHolderAddr = '0x357990585a6BB953DCBA126de48585ed27E22319';
+    await hre.network.provider.request({
+      method: 'hardhat_impersonateAccount',
+      params: [tokenHolderAddr],
+    });
+    const tokenHolder = await hre.ethers.provider.getSigner(tokenHolderAddr);
+    await zapIn(
+      hre.ethers.utils.parseEther('5000'),
+      token2,
+      token1,
+      lp,
+      tokenHolder,
+      tokenHolderAddr,
+      crypt,
+      cryptAddr,
+    );
+    await zapOut(token2, token1, tokenHolder, tokenHolderAddr, crypt, cryptAddr);
+  });
+
+  it('OP-L2DAO vAMM zap in and out (with swapping to OP)', async () => {
+    const cryptAddr = '0x1B4Fd39128B9caDfdfe62fb8C519061D5227D4b9';
+    const token1Addr = '0x4200000000000000000000000000000000000042'; // OP
+    const token2Addr = '0xd52f94DF742a6F4B4C8b033369fE13A41782Bf44'; // L2DAO
+
+    const crypt = await Crypt.attach(cryptAddr);
+    const lp = await Token.attach('0xfc77e39De40E54F820E313039207DC850E4C9E60');
+    const token1 = await Token.attach(token1Addr);
+    const token2 = await Token.attach(token2Addr);
+
+    // zapIn with 5000 L2DAO
+    const tokenHolderAddr = '0x357990585a6BB953DCBA126de48585ed27E22319';
+    await hre.network.provider.request({
+      method: 'hardhat_impersonateAccount',
+      params: [tokenHolderAddr],
+    });
+    const tokenHolder = await hre.ethers.provider.getSigner(tokenHolderAddr);
+    await zapIn(
+      hre.ethers.utils.parseEther('5000'),
+      token2,
+      token1,
+      lp,
+      tokenHolder,
+      tokenHolderAddr,
+      crypt,
+      cryptAddr,
+    );
+    await zapOut(token2, token1, tokenHolder, tokenHolderAddr, crypt, cryptAddr, token1);
+  });
+
+  it('OP-L2DAO vAMM zap in and out (with swapping to L2DAO)', async () => {
+    const cryptAddr = '0x1B4Fd39128B9caDfdfe62fb8C519061D5227D4b9';
+    const token1Addr = '0x4200000000000000000000000000000000000042'; // OP
+    const token2Addr = '0xd52f94DF742a6F4B4C8b033369fE13A41782Bf44'; // L2DAO
+
+    const crypt = await Crypt.attach(cryptAddr);
+    const lp = await Token.attach('0xfc77e39De40E54F820E313039207DC850E4C9E60');
+    const token1 = await Token.attach(token1Addr);
+    const token2 = await Token.attach(token2Addr);
+
+    // zapIn with 5000 L2DAO
+    const tokenHolderAddr = '0x357990585a6BB953DCBA126de48585ed27E22319';
+    await hre.network.provider.request({
+      method: 'hardhat_impersonateAccount',
+      params: [tokenHolderAddr],
+    });
+    const tokenHolder = await hre.ethers.provider.getSigner(tokenHolderAddr);
+    await zapIn(
+      hre.ethers.utils.parseEther('5000'),
+      token2,
+      token1,
+      lp,
+      tokenHolder,
+      tokenHolderAddr,
+      crypt,
+      cryptAddr,
+    );
+    await zapOut(token2, token1, tokenHolder, tokenHolderAddr, crypt, cryptAddr, token2);
+  });
+
   async function estimateSwaps(cryptAddr, token1Addr, token1Symbol, token2Symbol, amounts) {
     for (let i = 0; i < amounts.length; i++) {
       const estimateOutput = await zapper.estimateSwap(cryptAddr, token1Addr, amounts[i]);
@@ -163,7 +281,7 @@ describe('Zapper', function () {
       )}`,
     );
     console.log(`Starting user LP balance = ${hre.ethers.utils.formatEther(await lpToken.balanceOf(tokenHolderAddr))}`);
-    await zapper.connect(tokenHolder).reapIn(cryptAddr, swapAmountOut, wethAddr, amount);
+    await zapper.connect(tokenHolder).reapIn(cryptAddr, swapAmountOut, tokenIn.address, amount);
     console.log(
       `\nPost-zap user ETH (native) balance = ${hre.ethers.utils.formatEther(
         await hre.ethers.provider.getBalance(tokenHolderAddr),
