@@ -243,6 +243,23 @@ describe('Zapper', function () {
     await zapOut(token2, token1, tokenHolder, tokenHolderAddr, crypt, cryptAddr, token2);
   });
 
+  it('USDC-MAI sAMM estimate swaps', async () => {
+    const cryptAddr = '0x6Cb0cF0518bc8f87B751F178EF264B248d1A2128';
+    const token1Addr = '0x7F5c764cBc14f9669B88837ca1490cCa17c31607'; // USDC
+    const token2Addr = '0xdFA46478F9e5EA86d57387849598dbFB2e964b02'; // MAI
+
+    const token1 = await Token.attach(token1Addr);
+    const token2 = await Token.attach(token2Addr);
+
+    const token1Symbol = await token1.symbol();
+    const token2Symbol = await token2.symbol();
+
+    // estimate swaps
+    await estimateSwaps(cryptAddr, token2Addr, token2Symbol, token1Symbol, [
+      hre.ethers.utils.parseEther('37.375661386632173071'),
+    ]);
+  });
+
   async function estimateSwaps(cryptAddr, token1Addr, token1Symbol, token2Symbol, amounts) {
     for (let i = 0; i < amounts.length; i++) {
       const estimateOutput = await zapper.estimateSwap(cryptAddr, token1Addr, amounts[i]);
