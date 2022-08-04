@@ -11,4 +11,8 @@ interface IVeloPair {
     function stable() external view returns (bool);
 
     function tokens() external view returns (address, address);
+
+    function getAmountOut(uint256 amountIn, address tokenIn) external view returns (uint256);
+
+    function getReserves() external view returns (uint256 _reserve0, uint256 _reserve1, uint256 _blockTimestampLast);
 }
