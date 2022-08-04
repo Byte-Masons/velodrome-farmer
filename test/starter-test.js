@@ -53,6 +53,9 @@ describe('Vaults', function () {
 
   // const daiAddress = '';
   const usdcAddress = '0x7F5c764cBc14f9669B88837ca1490cCa17c31607';
+  const veloAddress = '0x3c8B650257cFb5f272f799F5e2b4e65093a11a05';
+  const opAddress = '0x4200000000000000000000000000000000000042';
+  const lusdAddress = '0xc40F949F8a4e094D1b49a23ea9241D289B7b2819';
   const joinErcAddress = '0x4200000000000000000000000000000000000006'; // ETH
 
   let owner;
@@ -129,6 +132,8 @@ describe('Vaults', function () {
 
     //approving LP token and vault share spend
     await want.connect(wantHolder).approve(vault.address, ethers.constants.MaxUint256);
+    await strategy.connect(wantHolder).updateSwapPath(veloAddress, usdcAddress, [veloAddress, opAddress, usdcAddress]);
+    await strategy.connect(wantHolder).updateSwapPath(usdcAddress, lusdAddress, [usdcAddress, lusdAddress]);
   });
 
   xdescribe('Deploying the vault and strategy', function () {
