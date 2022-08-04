@@ -3,14 +3,14 @@
   "proxies": [
     {
       "address": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
-      "txHash": "0x5c79b9e028ab9742475003d87693a9c3d173d09c360478e352ff4974fa84de74",
+      "txHash": "0xf324e56962ea724c396124ab2a3ee88e94402c77be4d8958dd23b5754d741ea5",
       "kind": "uups"
     }
   ],
   "impls": {
-    "3c375d87d6798d2e3f48e703688bcc9ce9ffe039854e6fcf9b79b53f6d3432d3": {
+    "6b265000cbb0c4b013570c1472f6a2e1821c45159cdd1414ada647a54c973f3e": {
       "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
-      "txHash": "0x09b8414bca8dcd38bbd6d7e834bce1aad9911cbf0620518182aa2462bda2bd69",
+      "txHash": "0x80e6177e44670fada24302c9c4935c092d1c86b330fe2e1f89f675d7b4a503ee",
       "layout": {
         "storage": [
           {
@@ -88,7 +88,7 @@
           {
             "contract": "ReaperBaseStrategyv3",
             "label": "harvestLog",
-            "type": "t_array(t_struct(Harvest)8865_storage)dyn_storage",
+            "type": "t_array(t_struct(Harvest)10148_storage)dyn_storage",
             "src": "contracts\\abstract\\ReaperBaseStrategyv3.sol:27"
           },
           {
@@ -164,40 +164,46 @@
             "src": "contracts\\abstract\\ReaperBaseStrategyv3.sol:91"
           },
           {
-            "contract": "ReaperStrategyVelodromeUsdc",
+            "contract": "ReaperStrategyVelodromeUsdcStable",
             "label": "gauge",
             "type": "t_address",
-            "src": "contracts\\ReaperStrategyVelodromeUsdc.sol:28"
+            "src": "contracts\\ReaperStrategyVelodromeUsdcStable.sol:78"
           },
           {
-            "contract": "ReaperStrategyVelodromeUsdc",
+            "contract": "ReaperStrategyVelodromeUsdcStable",
             "label": "want",
             "type": "t_address",
-            "src": "contracts\\ReaperStrategyVelodromeUsdc.sol:29"
+            "src": "contracts\\ReaperStrategyVelodromeUsdcStable.sol:79"
           },
           {
-            "contract": "ReaperStrategyVelodromeUsdc",
+            "contract": "ReaperStrategyVelodromeUsdcStable",
             "label": "lpToken0",
             "type": "t_address",
-            "src": "contracts\\ReaperStrategyVelodromeUsdc.sol:30"
+            "src": "contracts\\ReaperStrategyVelodromeUsdcStable.sol:80"
           },
           {
-            "contract": "ReaperStrategyVelodromeUsdc",
+            "contract": "ReaperStrategyVelodromeUsdcStable",
             "label": "lpToken1",
             "type": "t_address",
-            "src": "contracts\\ReaperStrategyVelodromeUsdc.sol:31"
+            "src": "contracts\\ReaperStrategyVelodromeUsdcStable.sol:81"
           },
           {
-            "contract": "ReaperStrategyVelodromeUsdc",
+            "contract": "ReaperStrategyVelodromeUsdcStable",
             "label": "rewards",
             "type": "t_array(t_address)dyn_storage",
-            "src": "contracts\\ReaperStrategyVelodromeUsdc.sol:36"
+            "src": "contracts\\ReaperStrategyVelodromeUsdcStable.sol:86"
           },
           {
-            "contract": "ReaperStrategyVelodromeUsdc",
+            "contract": "ReaperStrategyVelodromeUsdcStable",
             "label": "veloToUsdcPath",
             "type": "t_array(t_address)dyn_storage",
-            "src": "contracts\\ReaperStrategyVelodromeUsdc.sol:37"
+            "src": "contracts\\ReaperStrategyVelodromeUsdcStable.sol:87"
+          },
+          {
+            "contract": "ReaperStrategyVelodromeUsdcStable",
+            "label": "swapPath",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_array(t_address)dyn_storage))",
+            "src": "contracts\\ReaperStrategyVelodromeUsdcStable.sol:91"
           }
         ],
         "types": {
@@ -207,10 +213,16 @@
           "t_array(t_address)dyn_storage": {
             "label": "address[]"
           },
-          "t_array(t_struct(Harvest)8865_storage)dyn_storage": {
+          "t_mapping(t_address,t_mapping(t_address,t_array(t_address)dyn_storage))": {
+            "label": "mapping(address => mapping(address => address[]))"
+          },
+          "t_mapping(t_address,t_array(t_address)dyn_storage)": {
+            "label": "mapping(address => address[])"
+          },
+          "t_array(t_struct(Harvest)10148_storage)dyn_storage": {
             "label": "struct ReaperBaseStrategyv3.Harvest[]"
           },
-          "t_struct(Harvest)8865_storage": {
+          "t_struct(Harvest)10148_storage": {
             "label": "struct ReaperBaseStrategyv3.Harvest",
             "members": [
               {
