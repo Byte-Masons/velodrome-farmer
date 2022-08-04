@@ -86,6 +86,10 @@ contract ReaperStrategyVelodromeUsdcStable is ReaperBaseStrategyv3 {
     address[] public rewards;
     address[] public veloToUsdcPath;
 
+    /// @dev tokenA => (tokenB => swapPath config): returns best path to swap
+    ///         tokenA to tokenB
+    mapping(address => mapping(address => address[])) public swapPath;
+
     /// @dev Initializes the strategy. Sets parameters and saves routes.
     /// @notice see documentation for each variable above its respective declaration.
     function initialize(
@@ -152,12 +156,18 @@ contract ReaperStrategyVelodromeUsdcStable is ReaperBaseStrategyv3 {
             return;
         }
 
-        IERC20Upgradeable(_from).safeIncreaseAllowance(VELODROME_ROUTER, _amount);
+        uint256 output;
+        bool useStable;
         IVeloRouter router = IVeloRouter(VELODROME_ROUTER);
+        address[] storage path = swapPath[_from][_to];
+        IVeloRouter.route[] memory routes = new IVeloRouter.route[](path.length - 1);
+        uint256 prevRouteOutput = _amount;
 
-        (, bool useStable) = router.getAmountOut(_amount, _from, _to);
-        IVeloRouter.route[] memory routes = new IVeloRouter.route[](1);
-        routes[0] = IVeloRouter.route({from: _from, to: _to, stable: useStable});
+        IERC20Upgradeable(_from).safeIncreaseAllowance(VELODROME_ROUTER, _amount);
+        for (uint256 i = 0; i < routes.length; i++) {
+            (output, useStable) = router.getAmountOut(prevRouteOutput, path[i], path[i + 1]);
+            routes[i] = IVeloRouter.route({from: path[i], to: path[i + 1], stable: useStable});
+        }
         router.swapExactTokensForTokens(_amount, 0, routes, address(this), block.timestamp);
     }
 
@@ -166,9 +176,7 @@ contract ReaperStrategyVelodromeUsdcStable is ReaperBaseStrategyv3 {
     ///      Charges fees based on the amount of USDC gained from reward
     function _chargeFees() internal returns (uint256 callFeeToUser){
         IERC20Upgradeable usdc = IERC20Upgradeable(USDC);
-        for (uint256 i; i < veloToUsdcPath.length - 1; i++) {
-            _swap(veloToUsdcPath[i],veloToUsdcPath[i+1],IERC20Upgradeable(veloToUsdcPath[i]).balanceOf(address(this)));
-        }
+        _swap(VELO,USDC,IERC20Upgradeable(VELO).balanceOf(address(this)));
         uint256 usdcFee = (usdc.balanceOf(address(this)) * totalFee) / PERCENT_DIVISOR;
 
         if (usdcFee != 0) {
@@ -213,6 +221,19 @@ contract ReaperStrategyVelodromeUsdcStable is ReaperBaseStrategyv3 {
             address(this),
             block.timestamp
         );
+    }
+
+    /// @dev Update {SwapPath} for a specified pair of tokens.
+    function updateSwapPath(address _tokenIn, address _tokenOut, address[] calldata _path) external {
+        _atLeastRole(STRATEGIST);
+        swapPath[_tokenIn][_tokenOut] = _path;
+    }
+
+    /// @dev Swap whole balance of a token to usdc
+    ///     Should only be used to scrap lost funds.
+    function guardianSwap(address _token) external {
+        _atLeastRole(GUARDIAN);
+        _swap(_token, USDC, IERC20Upgradeable(_token).balanceOf(address(this)));
     }
 
     /// @dev Function to calculate the total {want} held by the strat.
