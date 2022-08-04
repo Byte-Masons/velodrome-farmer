@@ -39,8 +39,8 @@ describe('Vaults', function () {
 
   const treasuryAddr = '0x1E71AEE6081f62053123140aacC7a06021D77348';
   const paymentSplitterAddress = '0x1E71AEE6081f62053123140aacC7a06021D77348';
-  const wantAddress = '0x4F7ebc19844259386DBdDB7b2eB759eeFc6F8353';
-  const gauge = '0xc4fF55A961bC04b880e60219CCBBDD139c6451A4';
+  const wantAddress = '0x207AddB05C548F262219f6bFC6e11c02d0f7fDbe';
+  const gauge = '0x631dCe3a422e1af1AD9d3952B06f9320e2f2ed72';
 
   const wantHolderAddr = '0x1E71AEE6081f62053123140aacC7a06021D77348';
   const strategistAddr = '0x1E71AEE6081f62053123140aacC7a06021D77348';
@@ -94,7 +94,7 @@ describe('Vaults', function () {
 
     // get artifacts
     Vault = await ethers.getContractFactory('ReaperVaultv1_4');
-    Strategy = await ethers.getContractFactory('ReaperStrategyVelodromeUsdc');
+    Strategy = await ethers.getContractFactory('ReaperStrategyVelodromeUsdcStable');
     Want = await ethers.getContractFactory('@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20');
 
     // deploy contracts
