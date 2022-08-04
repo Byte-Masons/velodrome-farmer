@@ -191,7 +191,17 @@ contract ReaperStrategyVelodromeUsdcStable is ReaperBaseStrategyv3 {
             return;
         }
 
-        uint256 toSwap = _getSwapAmount(usdcBal, USDC);
+        IVeloPair pair = IVeloPair(want);
+        (uint256 reserveA, uint256 reserveB, ) = pair.getReserves();
+        (address token0, address token1) = pair.tokens();
+        uint256 toSwap;
+        if (USDC == token0) {
+            toSwap = _getSwapAmount(pair, usdcBal, reserveA, reserveB, USDC);
+        } else {
+            require(USDC == token1, "LP does not have USDC!");
+            toSwap = _getSwapAmount(pair, usdcBal, reserveB, reserveA, USDC);
+        }
+
         if (USDC == lpToken0) {
             _swap(USDC, lpToken1, toSwap);
         } else {
@@ -238,12 +248,17 @@ contract ReaperStrategyVelodromeUsdcStable is ReaperBaseStrategyv3 {
         veloToUsdcPath = _path;
     }
 
-    function _getSwapAmount(uint256 _investment, address _lpToken) internal view returns (uint256 swapAmount) {
-        (uint256 reserveA, uint256 reserveB,) = IVeloPair(want).getReserves();
-        uint256 halfInvestment = _investment / 2;
-        uint256 numerator = IVeloPair(want).getAmountOut(halfInvestment, _lpToken);
+    function _getSwapAmount(
+        IVeloPair pair,
+        uint256 investmentA,
+        uint256 reserveA,
+        uint256 reserveB,
+        address tokenA
+    ) private view returns (uint256 swapAmount) {
+        uint256 halfInvestment = investmentA / 2;
+        uint256 numerator = pair.getAmountOut(halfInvestment, tokenA);
         uint256 denominator = _quoteLiquidity(halfInvestment, reserveA + halfInvestment, reserveB - numerator);
-        swapAmount = _investment - Babylonian.sqrt((halfInvestment * halfInvestment * numerator) / denominator);
+        swapAmount = investmentA - Babylonian.sqrt((halfInvestment * halfInvestment * numerator) / denominator);
     }
 
     // Copied from Velodrome's Router since it's an internal function in there
