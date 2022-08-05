@@ -39,8 +39,8 @@ describe('Vaults', function () {
 
   const treasuryAddr = '0x1E71AEE6081f62053123140aacC7a06021D77348';
   const paymentSplitterAddress = '0x1E71AEE6081f62053123140aacC7a06021D77348';
-  const wantAddress = '0x4F7ebc19844259386DBdDB7b2eB759eeFc6F8353';
-  const gauge = '0xc4fF55A961bC04b880e60219CCBBDD139c6451A4';
+  const wantAddress = '0x207AddB05C548F262219f6bFC6e11c02d0f7fDbe';
+  const gauge = '0x631dCe3a422e1af1AD9d3952B06f9320e2f2ed72';
 
   const wantHolderAddr = '0x1E71AEE6081f62053123140aacC7a06021D77348';
   const strategistAddr = '0x1E71AEE6081f62053123140aacC7a06021D77348';
@@ -131,7 +131,7 @@ describe('Vaults', function () {
     await want.connect(wantHolder).approve(vault.address, ethers.constants.MaxUint256);
   });
 
-  xdescribe('Deploying the vault and strategy', function () {
+  describe('Deploying the vault and strategy', function () {
     xit('should initiate vault with a 0 balance', async function () {
       const totalBalance = await vault.balance();
       const availableBalance = await vault.available();
@@ -158,8 +158,8 @@ describe('Vaults', function () {
       );
     });
 
-    xit('should allow implementation upgrades once timelock has passed', async function () {
-      const StrategyV2 = await ethers.getContractFactory('ReaperStrategyHappyRoad2');
+    it('should allow implementation upgrades once timelock has passed', async function () {
+      const StrategyV2 = await ethers.getContractFactory('ReaperStrategyVelodromeUsdcStable');
       const timeToSkip = (await strategy.UPGRADE_TIMELOCK()).add(10);
       await strategy.initiateUpgradeCooldown();
       await moveTimeForward(timeToSkip.toNumber());
@@ -188,7 +188,7 @@ describe('Vaults', function () {
     });
   });
 
-  describe('Vault Tests', function () {
+  xdescribe('Vault Tests', function () {
     xit('should allow deposits and account for them correctly', async function () {
       const userBalance = await want.balanceOf(wantHolderAddr);
       const vaultBalance = await vault.balance();
