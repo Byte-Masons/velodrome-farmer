@@ -39,8 +39,8 @@ describe('Vaults', function () {
 
   const treasuryAddr = '0x1E71AEE6081f62053123140aacC7a06021D77348';
   const paymentSplitterAddress = '0x1E71AEE6081f62053123140aacC7a06021D77348';
-  const wantAddress = '0x207AddB05C548F262219f6bFC6e11c02d0f7fDbe';
-  const gauge = '0x631dCe3a422e1af1AD9d3952B06f9320e2f2ed72';
+  const wantAddress = '0xFd7FddFc0A729eCF45fB6B12fA3B71A575E1966F';
+  const gauge = '0x101D5e5651D7f949154258C1C7516da1eC273476';
 
   const wantHolderAddr = '0x1E71AEE6081f62053123140aacC7a06021D77348';
   const strategistAddr = '0x1E71AEE6081f62053123140aacC7a06021D77348';
@@ -56,7 +56,8 @@ describe('Vaults', function () {
   const veloAddress = '0x3c8B650257cFb5f272f799F5e2b4e65093a11a05';
   const opAddress = '0x4200000000000000000000000000000000000042';
   const lusdAddress = '0xc40F949F8a4e094D1b49a23ea9241D289B7b2819';
-  const joinErcAddress = '0x4200000000000000000000000000000000000006'; // ETH
+  const sethAddress = '0xE405de8F52ba7559f9df3C368500B6E6ae6Cee49';
+  const ethAddress = '0x4200000000000000000000000000000000000006'; // ETH
 
   let owner;
   let wantHolder;
@@ -97,7 +98,7 @@ describe('Vaults', function () {
 
     // get artifacts
     Vault = await ethers.getContractFactory('ReaperVaultv1_4');
-    Strategy = await ethers.getContractFactory('ReaperStrategyVelodromeUsdcStable');
+    Strategy = await ethers.getContractFactory('ReaperStrategyVelodromeStable');
     Want = await ethers.getContractFactory('@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20');
 
     // deploy contracts
@@ -132,8 +133,10 @@ describe('Vaults', function () {
 
     //approving LP token and vault share spend
     await want.connect(wantHolder).approve(vault.address, ethers.constants.MaxUint256);
+    await strategy.connect(wantHolder).setRelay(ethAddress);
     await strategy.connect(wantHolder).updateSwapPath(veloAddress, usdcAddress, [veloAddress, opAddress, usdcAddress]);
-    await strategy.connect(wantHolder).updateSwapPath(usdcAddress, lusdAddress, [usdcAddress, lusdAddress]);
+    await strategy.connect(wantHolder).updateSwapPath(veloAddress, ethAddress, [veloAddress, opAddress, ethAddress]);
+    await strategy.connect(wantHolder).updateSwapPath(ethAddress, sethAddress, [ethAddress, sethAddress]);
   });
 
   xdescribe('Deploying the vault and strategy', function () {

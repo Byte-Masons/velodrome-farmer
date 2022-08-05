@@ -59,7 +59,7 @@ library Babylonian {
 }
 
 /// @dev Deposit and stake want in Velodrome Gauges. Harvests VELO rewards and compounds.
-contract ReaperStrategyVelodrome is ReaperBaseStrategyv3 {
+contract ReaperStrategyVelodromeStable is ReaperBaseStrategyv3 {
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
     /// 3rd-party contract addresses
