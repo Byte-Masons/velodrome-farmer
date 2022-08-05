@@ -171,6 +171,7 @@ contract ReaperStrategyVelodrome is ReaperBaseStrategyv3 {
         for (uint256 i = 0; i < routes.length; i++) {
             (output, useStable) = router.getAmountOut(prevRouteOutput, path[i], path[i + 1]);
             routes[i] = IVeloRouter.route({from: path[i], to: path[i + 1], stable: useStable});
+            prevRouteOutput = output;
         }
         router.swapExactTokensForTokens(_amount, 0, routes, address(this), block.timestamp);
     }
@@ -236,6 +237,7 @@ contract ReaperStrategyVelodrome is ReaperBaseStrategyv3 {
     /// @dev Update {SwapPath} for a specified pair of tokens.
     function updateSwapPath(address _tokenIn, address _tokenOut, address[] calldata _path) external {
         _atLeastRole(STRATEGIST);
+        require(_tokenIn != _tokenOut && _path.length >= 2 && _path[0] == _tokenIn && _path[_path.length - 1] == _tokenOut);
         swapPath[_tokenIn][_tokenOut] = _path;
     }
 
