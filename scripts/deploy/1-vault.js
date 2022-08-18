@@ -1,9 +1,9 @@
 async function main() {
   const Vault = await ethers.getContractFactory('ReaperVaultv1_4');
 
-  const wantAddress = '';
-  const tokenName = '';
-  const tokenSymbol = '';
+  const wantAddress = '0xEc24EB97cEc2F0F6A2D61254990B0f163BbbFe1d';
+  const tokenName = 'Velodrome sAMM-sUSD/DAI Crypt';
+  const tokenSymbol = 'rfsAMM-sUSD/DAI';
   const depositFee = 0;
   const tvlCap = ethers.constants.MaxUint256;
 
