@@ -1,8 +1,8 @@
 const hre = require('hardhat');
 
 async function main() {
-  const vaultAddress = '';
-  const gauge = '';
+  const vaultAddress = '0x53B788691D66ee50c8F36d153921b37f85432FAc';
+  const gauge = '0x6af999d0cb99773398ddb265adf0243fbf5125df';
 
   const Strategy = await ethers.getContractFactory('ReaperStrategyVelodromeUsdc');
 
