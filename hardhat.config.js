@@ -44,11 +44,6 @@ module.exports = {
       chainId: 250,
       accounts: [`0x${PRIVATE_KEY}`],
     },
-    testnet: {
-      url: `https://rpcapi-tracing.testnet.fantom.network`,
-      chainId: 4002,
-      accounts: [`0x${PRIVATE_KEY}`],
-    },
     optimisticEthereum: {
       url: `https://mainnet.optimism.io`,
       chainId: 10,
