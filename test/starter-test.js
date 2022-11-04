@@ -39,14 +39,16 @@ describe('Vaults', function () {
 
   const treasuryAddr = '0x1E71AEE6081f62053123140aacC7a06021D77348';
   const paymentSplitterAddress = '0x1E71AEE6081f62053123140aacC7a06021D77348';
-  const wantAddress = '0x207AddB05C548F262219f6bFC6e11c02d0f7fDbe';
-  const gauge = '0x631dCe3a422e1af1AD9d3952B06f9320e2f2ed72';
+  const wantAddress = '0xb7d1b5A725F7f1977aAE752ba1fAE29341F1d7f9';
+  const gauge = '0x975950c2cf5c4d317B750df4ed139d608AdE21f4';
 
-  const wantHolderAddr = '0x1E71AEE6081f62053123140aacC7a06021D77348';
+  const wantHolderAddr = '0x4C3490dF15edFa178333445ce568EC6D99b5d71c';
   const strategistAddr = '0x1E71AEE6081f62053123140aacC7a06021D77348';
   const defaultAdminAddress = '0x1E71AEE6081f62053123140aacC7a06021D77348';
   const adminAddress = '0x1E71AEE6081f62053123140aacC7a06021D77348';
   const guardianAddress = '0x1E71AEE6081f62053123140aacC7a06021D77348';
+
+  const etherWhaleAddress = '0xa3f45e619cE3AAe2Fa5f8244439a66B203b78bCc';
 
   // const beetsAddress = '';
   // const beetsHolderAddr = '';
@@ -61,7 +63,7 @@ describe('Vaults', function () {
   let owner;
   let wantHolder;
   let strategist;
-  let beetsHolder;
+  let etherWhale;
 
   beforeEach(async function () {
     //reset network
@@ -70,8 +72,8 @@ describe('Vaults', function () {
       params: [
         {
           forking: {
-            jsonRpcUrl: 'https://mainnet.optimism.io',
-            // blockNumber: 37848216,
+            jsonRpcUrl: 'https://late-fragrant-rain.optimism.quiknode.pro/70171d2e7790f3af6a833f808abe5e85ed6bd881/',
+            // blockNumber: 15898859,
           },
         },
       ],
@@ -79,25 +81,33 @@ describe('Vaults', function () {
 
     //get signers
     [owner] = await ethers.getSigners();
+
     await hre.network.provider.request({
       method: 'hardhat_impersonateAccount',
       params: [wantHolderAddr],
     });
     wantHolder = await ethers.provider.getSigner(wantHolderAddr);
+
     await hre.network.provider.request({
       method: 'hardhat_impersonateAccount',
       params: [strategistAddr],
     });
     strategist = await ethers.provider.getSigner(strategistAddr);
-    // await hre.network.provider.request({
-    //   method: 'hardhat_impersonateAccount',
-    //   params: [beetsHolderAddr],
-    // });
-    // beetsHolder = await ethers.provider.getSigner(beetsHolderAddr);
+
+    await hre.network.provider.request({
+      method: 'hardhat_impersonateAccount',
+      params: [etherWhaleAddress],
+    });
+    etherWhale = await ethers.provider.getSigner(etherWhaleAddress);
+
+    await etherWhale.sendTransaction({
+      to: wantHolderAddr,
+      value: ethers.utils.parseEther("10") // 1 ether
+    })
 
     // get artifacts
     Vault = await ethers.getContractFactory('ReaperVaultv1_4');
-    Strategy = await ethers.getContractFactory('ReaperStrategyVelodromeUsdcStable');
+    Strategy = await ethers.getContractFactory('ReaperStrategyVelodrome');
     Want = await ethers.getContractFactory('@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20');
 
     // deploy contracts
@@ -132,12 +142,10 @@ describe('Vaults', function () {
 
     //approving LP token and vault share spend
     await want.connect(wantHolder).approve(vault.address, ethers.constants.MaxUint256);
-    await strategy.connect(wantHolder).updateSwapPath(veloAddress, usdcAddress, [veloAddress, opAddress, usdcAddress]);
-    await strategy.connect(wantHolder).updateSwapPath(usdcAddress, lusdAddress, [usdcAddress, lusdAddress]);
   });
 
-  xdescribe('Deploying the vault and strategy', function () {
-    xit('should initiate vault with a 0 balance', async function () {
+  describe('Deploying the vault and strategy', function () {
+    it('should initiate vault with a 0 balance', async function () {
       const totalBalance = await vault.balance();
       const availableBalance = await vault.available();
       const pricePerFullShare = await vault.getPricePerFullShare();
@@ -194,7 +202,7 @@ describe('Vaults', function () {
   });
 
   describe('Vault Tests', function () {
-    xit('should allow deposits and account for them correctly', async function () {
+    it('should allow deposits and account for them correctly', async function () {
       const userBalance = await want.balanceOf(wantHolderAddr);
       const vaultBalance = await vault.balance();
       const depositAmount = toWantUnit('10');
@@ -206,32 +214,32 @@ describe('Vaults', function () {
       expect(depositAmount).to.be.closeTo(newVaultBalance, allowedInaccuracy);
     });
 
-    xit('should mint user their pool share', async function () {
+    it('should mint user their pool share', async function () {
       const userBalance = await want.balanceOf(wantHolderAddr);
       // const depositAmount = toWantUnit('0.0000001');
       const depositAmount = userBalance.div(10);
       await vault.connect(wantHolder).deposit(depositAmount);
 
       const ownerDepositAmount = userBalance.div(10);
-      await want.connect(wantHolder).transfer(owner.address, ownerDepositAmount);
-      await want.connect(owner).approve(vault.address, ethers.constants.MaxUint256);
-      await vault.connect(owner).deposit(ownerDepositAmount);
+      await want.connect(wantHolder).transfer(etherWhaleAddress, ownerDepositAmount);
+      await want.connect(etherWhale).approve(vault.address, ethers.constants.MaxUint256);
+      await vault.connect(etherWhale).depositAll();
 
-      const allowedImprecision = toWantUnit('0.0001');
+      const allowedImprecision = ownerDepositAmount.div(1000);
 
       const userVaultBalance = await vault.balanceOf(wantHolderAddr);
       expect(userVaultBalance).to.be.closeTo(depositAmount, allowedImprecision);
-      const ownerVaultBalance = await vault.balanceOf(owner.address);
+      const ownerVaultBalance = await vault.balanceOf(etherWhaleAddress);
       expect(ownerVaultBalance).to.be.closeTo(ownerDepositAmount, allowedImprecision);
 
-      await vault.connect(owner).withdrawAll();
-      const ownerWantBalance = await want.balanceOf(owner.address);
+      await vault.connect(etherWhale).withdrawAll();
+      const ownerWantBalance = await want.balanceOf(etherWhaleAddress);
       expect(ownerWantBalance).to.be.closeTo(ownerDepositAmount, allowedImprecision);
-      const afterOwnerVaultBalance = await vault.balanceOf(owner.address);
+      const afterOwnerVaultBalance = await vault.balanceOf(etherWhaleAddress);
       expect(afterOwnerVaultBalance).to.equal(0);
     });
 
-    xit('should allow withdrawals', async function () {
+    it('should allow withdrawals', async function () {
       const userBalance = await want.balanceOf(wantHolderAddr);
       const depositAmount = toWantUnit('10');
       await vault.connect(wantHolder).deposit(depositAmount);
@@ -249,7 +257,7 @@ describe('Vaults', function () {
       expect(isSmallBalanceDifference).to.equal(true);
     });
 
-    xit('should allow small withdrawal', async function () {
+    it('should allow small withdrawal', async function () {
       const userBalance = await want.balanceOf(wantHolderAddr);
       const depositAmount = toWantUnit('0.0000001');
       await vault.connect(wantHolder).deposit(depositAmount);
@@ -272,7 +280,7 @@ describe('Vaults', function () {
       expect(isSmallBalanceDifference).to.equal(true);
     });
 
-    xit('should handle small deposit + withdraw', async function () {
+    it('should handle small deposit + withdraw', async function () {
       const userBalance = await want.balanceOf(wantHolderAddr);
       const depositAmount = toWantUnit('0.0000000000001');
       await vault.connect(wantHolder).deposit(depositAmount);
@@ -289,9 +297,9 @@ describe('Vaults', function () {
       expect(isSmallBalanceDifference).to.equal(true);
     });
 
-    xit('should be able to harvest', async function () {
+    it('should be able to harvest', async function () {
       const userBalance = await want.balanceOf(wantHolderAddr);
-      const depositAmount = userBalance.div(10);
+      const depositAmount = userBalance.div(100);
       await vault.connect(wantHolder).deposit(depositAmount);
       // await moveBlocksForward(100);
       await moveTimeForward(3600 * 24);
@@ -310,7 +318,7 @@ describe('Vaults', function () {
 
     it('should provide yield', async function () {
       const userBalance = await want.balanceOf(wantHolderAddr);
-      const depositAmount = userBalance.div(10);
+      const depositAmount = userBalance.div(100);
       const timeToSkip = 3600;
       await vault.connect(wantHolder).deposit(depositAmount);
       const initialVaultBalance = await vault.balance();
@@ -332,7 +340,7 @@ describe('Vaults', function () {
       console.log(`Average APR across ${numHarvests} harvests is ${averageAPR} basis points.`);
     });
   });
-  xdescribe('Strategy', function () {
+  describe('Strategy', function () {
     it('should be able to pause and unpause', async function () {
       await strategy.pause();
       const depositAmount = toWantUnit('1');

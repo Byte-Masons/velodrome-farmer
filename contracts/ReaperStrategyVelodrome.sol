@@ -53,7 +53,7 @@ contract ReaperStrategyVelodrome is ReaperBaseStrategyv3 {
         want = IVeloGauge(gauge).stake();
         (lpToken0, lpToken1) = IVeloPair(want).tokens();
 
-        relay = lpToken0;
+        relay = lpToken1;
         // VELO, WETH, USDC
         veloToUsdcPath = [VELO, address(0x4200000000000000000000000000000000000006), USDC];
         veloToRelayPath = [VELO, relay];
