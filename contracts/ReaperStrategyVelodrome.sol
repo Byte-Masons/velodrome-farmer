@@ -33,10 +33,10 @@ contract ReaperStrategyVelodrome is ReaperBaseStrategyv3 {
 
     /// @dev Arrays
     /// {rewards} - Array need to claim rewards
-    /// {veloToRelayPath} - Path from velo to relay
+    /// {usdcToRelayPath} - Path from usdc to relay
     /// {veloToUsdcPath} - Path from velo to usdc
     address[] public rewards;
-    address[] public veloToRelayPath;
+    address[] public usdcToRelayPath;
     address[] public veloToUsdcPath;
 
     /// @dev Initializes the strategy. Sets parameters and saves routes.
@@ -54,9 +54,9 @@ contract ReaperStrategyVelodrome is ReaperBaseStrategyv3 {
         (lpToken0, lpToken1) = IVeloPair(want).tokens();
 
         relay = lpToken1;
-        // VELO, WETH, USDC
-        veloToUsdcPath = [VELO, address(0x4200000000000000000000000000000000000006), USDC];
-        veloToRelayPath = [VELO, relay];
+        // VELO, USDC
+        veloToUsdcPath = [VELO, USDC];
+        usdcToRelayPath = [USDC, lpToken1];
         rewards.push(VELO);
     }
 
@@ -122,16 +122,11 @@ contract ReaperStrategyVelodrome is ReaperBaseStrategyv3 {
         IERC20Upgradeable velo = IERC20Upgradeable(VELO);
         IERC20Upgradeable usdc = IERC20Upgradeable(USDC);
         uint256 usdcBalBefore = usdc.balanceOf(address(this));
-        uint256 toSwap;
-        for (uint256 i; i < veloToUsdcPath.length - 1; i++) {
-            if (veloToUsdcPath[i] == VELO) {
-                toSwap = (velo.balanceOf(address(this)) * totalFee) / PERCENT_DIVISOR;
-            } else {
-                toSwap = IERC20Upgradeable(veloToUsdcPath[i]).balanceOf(address(this));
-            }
-            _swap(veloToUsdcPath[i],veloToUsdcPath[i+1], toSwap);
-        }
-        uint256 usdcFee = usdc.balanceOf(address(this)) - usdcBalBefore;
+        uint256 toSwap = velo.balanceOf(address(this));
+
+        _swap(veloToUsdcPath[0],veloToUsdcPath[1], toSwap);
+
+        uint256 usdcFee = (usdc.balanceOf(address(this)) - usdcBalBefore) * totalFee / PERCENT_DIVISOR;
 
         if (usdcFee != 0) {
             callFeeToUser = (usdcFee * callFee) / PERCENT_DIVISOR;
@@ -146,9 +141,7 @@ contract ReaperStrategyVelodrome is ReaperBaseStrategyv3 {
     }
 
     function _swapToRelay() internal {
-        for (uint256 i; i < veloToRelayPath.length - 1; i++) {
-            _swap(veloToRelayPath[i], veloToRelayPath[i+1], IERC20Upgradeable(veloToRelayPath[i]).balanceOf(address(this)));
-        }
+        _swap(usdcToRelayPath[0], usdcToRelayPath[1], IERC20Upgradeable(USDC).balanceOf(address(this)));
     }
 
     /// @dev Core harvest function.
@@ -199,10 +192,10 @@ contract ReaperStrategyVelodrome is ReaperBaseStrategyv3 {
         IVeloGauge(gauge).withdrawAll();
     }
 
-    function setVeloToRelayPath(address[] memory _path) external {
+    function setUsdcToRelayPath(address[] memory _path) external {
         _atLeastRole(STRATEGIST);
         require(_path[0] == VELO && _path[_path.length - 1] == relay, "INVALID INPUT");
-        veloToRelayPath = _path;
+        usdcToRelayPath = _path;
     }
 
     function setRelay(address _relay) external {
