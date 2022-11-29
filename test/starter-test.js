@@ -43,7 +43,7 @@ describe('Vaults', function () {
   const gauge = '0xDB8dD0d6f1E22A5608483778206577683a408bD0';
 
   const wantHolderAddr = '0x4C3490dF15edFa178333445ce568EC6D99b5d71c';
-  const strategistAddr = '0x1E71AEE6081f62053123140aacC7a06021D77348';
+  const strategistAddr = '0x4C3490dF15edFa178333445ce568EC6D99b5d71c';
   const defaultAdminAddress = '0x1E71AEE6081f62053123140aacC7a06021D77348';
   const adminAddress = '0x1E71AEE6081f62053123140aacC7a06021D77348';
   const guardianAddress = '0x1E71AEE6081f62053123140aacC7a06021D77348';
@@ -72,18 +72,14 @@ describe('Vaults', function () {
         {
           forking: {
             jsonRpcUrl: 'https://late-fragrant-rain.optimism.quiknode.pro/70171d2e7790f3af6a833f808abe5e85ed6bd881/',
-            // blockNumber: 15898859,
+             blockNumber: 43303014,
           },
         },
       ],
     });
 
     //get signers
-    await hre.network.provider.request({
-      method: 'hardhat_impersonateAccount',
-      params: [strategistAddr],
-    });
-    owner =  await ethers.provider.getSigner(strategistAddr);
+    [owner] = await ethers.getSigners();
 
     await hre.network.provider.request({
       method: 'hardhat_impersonateAccount',
@@ -105,6 +101,10 @@ describe('Vaults', function () {
 
     await etherWhale.sendTransaction({
       to: wantHolderAddr,
+      value: ethers.utils.parseEther("10") // 1 ether
+    })
+    await etherWhale.sendTransaction({
+      to: strategistAddr,
       value: ethers.utils.parseEther("10") // 1 ether
     })
 
@@ -263,12 +263,12 @@ describe('Vaults', function () {
     });
 
     it('should allow small withdrawal', async function () {
+      const ownerDepositAmount = toWantUnit('0.00000003');
+      await want.connect(wantHolder).transfer(owner.address, ownerDepositAmount);
       const userBalance = await want.balanceOf(wantHolderAddr);
       const depositAmount = toWantUnit('0.00000000000003');
       await vault.connect(wantHolder).deposit(depositAmount);
 
-      const ownerDepositAmount = toWantUnit('0.00000003');
-      await want.connect(wantHolder).transfer(owner.address, ownerDepositAmount);
       await want.connect(owner).approve(vault.address, ethers.constants.MaxUint256);
       await vault.connect(owner).deposit(ownerDepositAmount);
 
@@ -333,7 +333,7 @@ describe('Vaults', function () {
       console.log(`velo ${veloBalStrat}`);
     });
 
-    xit('should provide yield', async function () {
+    it('should provide yield', async function () {
       const userBalance = await want.balanceOf(wantHolderAddr);
       const depositAmount = userBalance.div(100);
       const timeToSkip = 3600;
