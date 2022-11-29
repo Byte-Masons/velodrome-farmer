@@ -72,7 +72,7 @@ describe('Vaults', function () {
         {
           forking: {
             jsonRpcUrl: 'https://late-fragrant-rain.optimism.quiknode.pro/70171d2e7790f3af6a833f808abe5e85ed6bd881/',
-             //blockNumber: 43303014,
+             //blockNumber: 43335099,
           },
         },
       ],
@@ -335,7 +335,7 @@ describe('Vaults', function () {
 
     it('should provide yield', async function () {
       const userBalance = await want.balanceOf(wantHolderAddr);
-      const depositAmount = userBalance.div(100);
+      const depositAmount = userBalance.div(10);
       const timeToSkip = 3600;
       await vault.connect(wantHolder).deposit(depositAmount);
       const initialVaultBalance = await vault.balance();
@@ -346,7 +346,7 @@ describe('Vaults', function () {
       // beets = Want.attach(beetsAddress);
       for (let i = 0; i < numHarvests; i++) {
         // await beets.connect(beetsHolder).transfer(strategy.address, toWantUnit('1'));
-      await moveTimeForward(3600 * 24);
+      await moveTimeForward(3600);
         await strategy.harvest();
       }
 

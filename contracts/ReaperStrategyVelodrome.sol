@@ -100,7 +100,8 @@ contract ReaperStrategyVelodrome is ReaperBaseStrategyv3 {
     function _swap(
         address _from,
         address _to,
-        uint256 _amount
+        uint256 _amount,
+        bool _useStable
     ) internal {
         if (_from == _to || _amount == 0) {
             return;
@@ -109,9 +110,9 @@ contract ReaperStrategyVelodrome is ReaperBaseStrategyv3 {
         IERC20Upgradeable(_from).safeIncreaseAllowance(VELODROME_ROUTER, _amount);
         IVeloRouter router = IVeloRouter(VELODROME_ROUTER);
 
-        (, bool useStable) = router.getAmountOut(_amount, _from, _to);
+        //(, bool useStable) = router.getAmountOut(_amount, _from, _to);
         IVeloRouter.route[] memory routes = new IVeloRouter.route[](1);
-        routes[0] = IVeloRouter.route({from: _from, to: _to, stable: useStable});
+        routes[0] = IVeloRouter.route({from: _from, to: _to, stable: _useStable});
         router.swapExactTokensForTokens(_amount, 0, routes, address(this), block.timestamp);
     }
 
@@ -124,7 +125,7 @@ contract ReaperStrategyVelodrome is ReaperBaseStrategyv3 {
         uint256 usdcBalBefore = usdc.balanceOf(address(this));
         uint256 toSwap = velo.balanceOf(address(this));
 
-        _swap(veloToUsdcPath[0],veloToUsdcPath[1], toSwap);
+        _swap(veloToUsdcPath[0],veloToUsdcPath[1], toSwap, false);
 
         uint256 usdcFee = (usdc.balanceOf(address(this)) - usdcBalBefore) * totalFee / PERCENT_DIVISOR;
 
@@ -141,7 +142,7 @@ contract ReaperStrategyVelodrome is ReaperBaseStrategyv3 {
     }
 
     function _swapToRelay() internal {
-        _swap(usdcToRelayPath[0], usdcToRelayPath[1], IERC20Upgradeable(USDC).balanceOf(address(this)));
+        _swap(usdcToRelayPath[0], usdcToRelayPath[1], IERC20Upgradeable(USDC).balanceOf(address(this)), true);
     }
 
     /// @dev Core harvest function.
@@ -153,9 +154,9 @@ contract ReaperStrategyVelodrome is ReaperBaseStrategyv3 {
         }
 
         if (relay == lpToken0) {
-            _swap(relay, lpToken1, relayBal / 2);
+            _swap(relay, lpToken1, relayBal / 2, IVeloPair(want).stable());
         } else {
-            _swap(relay, lpToken0, relayBal / 2);
+            _swap(relay, lpToken0, relayBal / 2, IVeloPair(want).stable());
         }
 
         uint256 lpToken0Bal = IERC20Upgradeable(lpToken0).balanceOf(address(this));
