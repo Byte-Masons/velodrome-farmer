@@ -42,7 +42,7 @@ describe('Vaults', function () {
   const wantAddress = '0x98dc12979A34EE2F7099B1cBD65f9080c5a3284F';
   const gauge = '0xDB8dD0d6f1E22A5608483778206577683a408bD0';
 
-  const wantHolderAddr = '0x4C3490dF15edFa178333445ce568EC6D99b5d71c';
+  const wantHolderAddr = '0x289a74cc1306387877fcc9bbcac0fed15825b473';
   const strategistAddr = '0x4C3490dF15edFa178333445ce568EC6D99b5d71c';
   const defaultAdminAddress = '0x1E71AEE6081f62053123140aacC7a06021D77348';
   const adminAddress = '0x1E71AEE6081f62053123140aacC7a06021D77348';
@@ -72,7 +72,7 @@ describe('Vaults', function () {
         {
           forking: {
             jsonRpcUrl: 'https://late-fragrant-rain.optimism.quiknode.pro/70171d2e7790f3af6a833f808abe5e85ed6bd881/',
-             blockNumber: 43303014,
+             //blockNumber: 43303014,
           },
         },
       ],
