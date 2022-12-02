@@ -12,11 +12,11 @@ const helpers = require('./helpers');
 //      Refactor functions, use context, to make resuming easier
 const main = async () => {
     let tx;
-    const options = {gasPrice: 1000000000000, gasLimit: 9000000};
+    const options = {gasPrice: 2000000, gasLimit: 9000000};
     const {deployer, vault, strategy, want} = await helpers.getTools();
     console.log("Tools set");
 
-    let wantBalance = await want.balanceOf(deployer.address);
+    /*let wantBalance = await want.balanceOf(deployer.address);
     tx = await want.approve(vault.address, wantBalance, options);
     await tx.wait();
     console.log('APPROVED');
@@ -24,7 +24,7 @@ const main = async () => {
     await tx.wait();
     console.log(`1 - Vault | Deposited ${wantBalance}`);
     await new Promise(resolve => { setTimeout(resolve, 2000); });
-
+    
     tx = await vault.withdrawAll(options);
     await tx.wait();
     console.log(`2 - Vault | Withdrew everything`);
@@ -38,7 +38,7 @@ const main = async () => {
     await tx.wait();
     console.log(`3 - Vault | Deposited ${wantBalance}`);
     await new Promise(resolve => { setTimeout(resolve, 2000); });
-
+    */
     tx = await strategy.harvest(options);
     await tx.wait();
     console.log(`4 - Strategy | Harvested`);
@@ -74,6 +74,7 @@ const main = async () => {
     await tx.wait();
     console.log(`9 - Vault | Deposited`);
     await new Promise(resolve => { setTimeout(resolve, 2000); });
+    
 } 
 
 main().then(() => {
